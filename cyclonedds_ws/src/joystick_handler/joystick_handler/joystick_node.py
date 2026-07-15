@@ -145,7 +145,7 @@ class JoyHandler(Node):
             euler_params = {}
             euler_params["x"] = round(left_stick_x * 0.75, 4)
             euler_params["y"] = round(left_stick_y * 0.75, 4)
-            euler_params["z"] = round(right_stick_y * 0.6, 4)
+            # euler_params["z"] = round(right_stick_y * 0, 4)
 
             sport_mode = Request()
             sport_mode.header.identity.api_id = 1007
