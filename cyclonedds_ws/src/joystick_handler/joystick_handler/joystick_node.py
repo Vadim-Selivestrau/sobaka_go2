@@ -85,69 +85,76 @@ class JoyHandler(Node):
         if msg.axes[6] > 0.0:
             sport_mode.header.identity.api_id = 1004 # нормал моде
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
-
             self.sport_mode_pub.publish(sport_mode)
+            self.get_logger().info(f'это нормал моде!')
+
         elif msg.axes[6] < 0.0:
             sport_mode.header.identity.api_id = 1002 # баланс моде
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
-
             self.sport_mode_pub.publish(sport_mode)
+            self.get_logger().info(f'это баланс моде!')
 
 
         if msg.axes[7] > 0.0:
             sport_mode.header.identity.api_id = 1004 # встать
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
-
             self.sport_mode_pub.publish(sport_mode)            
+            self.get_logger().info(f'встали')
         elif msg.axes[7] < 0.0:
             sport_mode.header.identity.api_id = 1005 # сесть
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
-
             self.sport_mode_pub.publish(sport_mode)
+            self.get_logger().info(f'сели')
 
         if square > 0.0:
-            sport_mode.header.identity.api_id = 1009 # сесть
+            sport_mode.header.identity.api_id = 1009 # режим миномёта
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
             self.sport_mode_pub.publish(sport_mode)  
+            self.get_logger().info(f'режим миномёта')
 
         if triangle > 0.0:
             sport_mode.header.identity.api_id = 1017 # Потянуться
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
             self.sport_mode_pub.publish(sport_mode)  
+            self.get_logger().info(f'потягушки!')
 
         if circle > 0.0:
             sport_mode.header.identity.api_id = 1016 # hello
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
             self.sport_mode_pub.publish(sport_mode)  
+            self.get_logger().info(f'привет')
 
         if cross > 0.0:
             sport_mode.header.identity.api_id = 1033 # виляние
             sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
-            self.sport_mode_pub.publish(sport_mode)  
+            self.sport_mode_pub.publish(sport_mode) 
+            self.get_logger().info(f'виляние!') 
 
 
 
-        # euler eagl
-        # roll: Range [-0.75~0.75] (rad); pitch: Range [-0.75~0.75] (rad); yaw: Range [-0.6~0.6] (rad).
-
+        # Euler (pose) — roll/pitch/yaw via API 1007
+        # JSON keys: x=roll, y=pitch, z=yaw (see ros2_sport_client.cpp Euler())
+        # roll:  [-0.75,  0.75] rad,  mapped from left_stick_x ([-1, 1])
+        # pitch: [-0.75,  0.75] rad,  mapped from left_stick_y ([-1, 1])
+        # yaw:   [-0.6,   0.6 ] rad,  mapped from right_stick_y ([-1, 1])
         if R1 > 0.0:
+            euler_params = {}
+            euler_params["x"] = round(left_stick_x * 0.75, 4)
+            euler_params["y"] = round(left_stick_y * 0.75, 4)
+            euler_params["z"] = round(right_stick_y * 0.6, 4)
+
+            sport_mode = Request()
             sport_mode.header.identity.api_id = 1007
-            params["roll"] = left_stick_x
-            params["pitch"] = left_stick_y
-            params["yaw"] = right_stick_y
-            sport_mode.parameter = json.dumps(params, separators=(',', ':'))
-
-            self.sport_mode_pub.publish(sport_mode)  
-
-
-        print(vx, vy, yaw)
-
-        if abs(vx) > 0.1 or abs(vy) > 0.1 or abs(yaw) > 0.1:
-            self.cmd_pub.publish(cur_twist)
+            sport_mode.parameter = json.dumps(euler_params, separators=(',', ':'))
+            self.sport_mode_pub.publish(sport_mode)
+            self.get_logger().info(f'Euler: roll={euler_params["x"]:.3f} pitch={euler_params["y"]:.3f} yaw={euler_params["z"]:.3f}')
+        else:
+            if abs(vx) > 0.1 or abs(vy) > 0.1 or abs(yaw) > 0.1:
+                self.cmd_pub.publish(cur_twist)
 
     # "Damp": 1001,
     # "BalanceStand": 1002,

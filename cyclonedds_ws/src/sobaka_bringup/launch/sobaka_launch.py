@@ -26,7 +26,7 @@ def generate_launch_description():
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(go2_states)),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
+        # IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(joystick)),
 
         
