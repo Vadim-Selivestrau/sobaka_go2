@@ -28,6 +28,7 @@ setup(
     entry_points={
         'console_scripts': [
             'joint_state_publisher = go2_states.joint_state_publisher:main',
+            'odom_publisher = go2_states.odom_publisher:main',
         ],
     },
 )

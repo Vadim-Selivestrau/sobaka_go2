@@ -27,6 +27,9 @@ def generate_launch_description():
             package='lidar_processor_cpp',
             executable='lidar_to_pointcloud_node',
             name='lidar_to_pointcloud',
+            remappings=[
+                ('/point_cloud2', '/utlidar/cloud'), 
+            ],
             parameters=[{
                 # 'robot_ip_lst': [],
                 'map_name': '3d_map',
@@ -44,7 +47,7 @@ def generate_launch_description():
                 'height_filter_min': -2.0,
                 'height_filter_max': 3.0,
                 'downsample_rate': 1,
-                'publish_rate': 30.0
+                'publish_rate': 10.0
             }],
         ),
         # Step 3: Convert filtered point cloud to LaserScan (removes legs via min_height)
@@ -57,7 +60,7 @@ def generate_launch_description():
                 ('scan', '/scan'),
             ],
             parameters=[{
-                'target_frame': 'base_link',
+                'target_frame': 'laser_frame',
                 'max_height': 2.0,
                 'min_height': -0.2,
                 'angle_min': -3.14159,
@@ -73,10 +76,28 @@ def generate_launch_description():
         ),
     ]
 
+    # Odom publisher: subscribes to /utlidar/robot_pose, publishes /odom + TF odom->base_link
+    odom_publisher_node = Node(
+        package='go2_states',
+        executable='odom_publisher',
+        name='odom_publisher',
+        output='screen',
+    )
+
+    # Static TF: base_link -> laser_frame (LiDAR is at the front of the robot)
+    laser_static_tf = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='base_link_to_laser_frame',
+        arguments=['0.19', '0', '0.06', '0', '0', '0', 'base_link', 'laser_frame'],
+    )
+
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(go2_states)),
         # IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(joystick)),
+        odom_publisher_node,
+        laser_static_tf,
         *lidar_pipeline_nodes,
     ])
