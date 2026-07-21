@@ -69,7 +69,7 @@ def generate_launch_description():
                 'scan_time': 0.033,
                 'range_min': 0.1,
                 'range_max': 20.0,
-                'use_inf': True,
+                'use_inf': False,
                 'concurrency_level': 1,
             }],
             output='screen',
@@ -92,6 +92,15 @@ def generate_launch_description():
         arguments=['0.19', '0', '0.06', '0', '0', '0', 'base_link', 'laser_frame'],
     )
 
+    # SLAM Toolbox: subscribes to /scan, publishes /map + tf map->odom
+    slam_node = Node(
+        package='slam_toolbox',
+        executable='async_slam_toolbox_node',
+        name='slam_toolbox',
+        output='screen',
+        parameters=['/home/user/unitree_ros2/cyclonedds_ws/src/config/mapper_params_online_async.yaml'],
+    )
+
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(go2_states)),
@@ -100,4 +109,5 @@ def generate_launch_description():
         odom_publisher_node,
         laser_static_tf,
         *lidar_pipeline_nodes,
+        slam_node,
     ])
