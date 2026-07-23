@@ -123,19 +123,10 @@ void PointCloudAggregatorNode::pointcloudCallback(const sensor_msgs::msg::PointC
     // Apply filters
     auto filtered_cloud = applyFilters(cloud);
     
-    // Store for aggregation
+    // Store for aggregation (only the latest filtered cloud)
     if (!filtered_cloud->points.empty()) {
       std::lock_guard<std::mutex> lock(clouds_mutex_);
-      aggregated_clouds_.push_back(filtered_cloud);
-      
-      // Keep only recent data (last 10 seconds worth)
-      size_t max_clouds = static_cast<size_t>(config_.publish_rate * 10);
-      if (aggregated_clouds_.size() > max_clouds) {
-        aggregated_clouds_.erase(
-          aggregated_clouds_.begin(),
-          aggregated_clouds_.begin() + (aggregated_clouds_.size() - max_clouds)
-        );
-      }
+      latest_filtered_cloud_ = filtered_cloud;
     }
     
   } catch (const std::exception& e) {
@@ -189,27 +180,20 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr PointCloudAggregatorNode::applyFilters(
 void PointCloudAggregatorNode::publishCallback()
 {
   try {
-    std::lock_guard<std::mutex> lock(clouds_mutex_);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_to_publish;
     
-    if (aggregated_clouds_.empty()) {
-      return;
-    }
-    
-    // Combine all stored point clouds
-    pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    
-    for (const auto& cloud : aggregated_clouds_) {
-      *combined_cloud += *cloud;
-    }
-    
-    if (combined_cloud->points.empty()) {
-      return;
+    {
+      std::lock_guard<std::mutex> lock(clouds_mutex_);
+      if (!latest_filtered_cloud_) {
+        return;
+      }
+      cloud_to_publish = latest_filtered_cloud_;
     }
     
     // Update cloud properties
-    combined_cloud->width = combined_cloud->points.size();
-    combined_cloud->height = 1;
-    combined_cloud->is_dense = true;
+    cloud_to_publish->width = cloud_to_publish->points.size();
+    cloud_to_publish->height = 1;
+    cloud_to_publish->is_dense = true;
     
     // Create header
     std_msgs::msg::Header header;
@@ -218,7 +202,7 @@ void PointCloudAggregatorNode::publishCallback()
     
     // Publish filtered cloud
     sensor_msgs::msg::PointCloud2 filtered_msg;
-    pcl::toROSMsg(*combined_cloud, filtered_msg);
+    pcl::toROSMsg(*cloud_to_publish, filtered_msg);
     filtered_msg.header = header;
     filtered_pub_->publish(filtered_msg);
     
@@ -226,8 +210,8 @@ void PointCloudAggregatorNode::publishCallback()
     if (config_.downsample_rate > 1) {
       pcl::PointCloud<pcl::PointXYZ>::Ptr downsampled_cloud(new pcl::PointCloud<pcl::PointXYZ>);
       
-      for (size_t i = 0; i < combined_cloud->points.size(); i += config_.downsample_rate) {
-        downsampled_cloud->points.push_back(combined_cloud->points[i]);
+      for (size_t i = 0; i < cloud_to_publish->points.size(); i += config_.downsample_rate) {
+        downsampled_cloud->points.push_back(cloud_to_publish->points[i]);
       }
       
       downsampled_cloud->width = downsampled_cloud->points.size();
@@ -246,12 +230,12 @@ void PointCloudAggregatorNode::publishCallback()
       current_time - last_publish_time_).count();
     
     if (time_diff >= 5) {  // Every 5 seconds
-      size_t total_points = combined_cloud->points.size();
+      size_t total_points = cloud_to_publish->points.size();
       size_t downsampled_points = total_points / std::max(1, config_.downsample_rate);
       
       RCLCPP_INFO(this->get_logger(),
-        "📊 Processed: %zu points, Clouds: %zu, Downsampled: %zu",
-        total_points, aggregated_clouds_.size(), downsampled_points);
+        "📊 Processed: %zu points, Downsampled: %zu",
+        total_points, downsampled_points);
       
       last_publish_time_ = current_time;
     }

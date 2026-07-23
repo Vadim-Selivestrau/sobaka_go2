@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <deque>
 #include <unordered_set>
 #include <mutex>
 #include <atomic>
@@ -78,7 +79,8 @@ public:
 
 private:
   LidarConfig config_;
-  std::unordered_set<Point3D, Point3DHash> points_;
+  std::deque<Point3D> points_order_;              // FIFO insertion order
+  std::unordered_set<Point3D, Point3DHash> points_set_;  // Fast deduplication
   mutable std::mutex points_mutex_;
   std::atomic<bool> points_changed_;
 };

@@ -15,6 +15,8 @@
 #include "pcl/point_types.h"
 #include "pcl/filters/statistical_outlier_removal.h"
 #include "pcl_conversions/pcl_conversions.h"
+#include <tf2_ros/transform_listener.h>
+#include <tf2_ros/buffer.h>
 
 namespace lidar_processor_cpp
 {
@@ -61,8 +63,11 @@ private:
 
   AggregatorConfig config_;
   std::unique_ptr<StatisticalFilter> statistical_filter_;
-  
-  std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> aggregated_clouds_;
+
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+
+  pcl::PointCloud<pcl::PointXYZ>::Ptr latest_filtered_cloud_;
   std::chrono::steady_clock::time_point last_publish_time_;
   mutable std::mutex clouds_mutex_;
   

@@ -4,3 +4,4 @@
 **/log/
 **/install/
 .cache
+cyclonedds_ws/3d_map.ply

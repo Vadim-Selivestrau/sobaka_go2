@@ -24,25 +24,20 @@ void PointCloudAggregator::addPoints(const std::vector<Point3D>& new_points)
       std::round(point.y * 1000.0f) / 1000.0f,
       std::round(point.z * 1000.0f) / 1000.0f
     );
-    points_.insert(rounded_point);
+    
+    // Deduplicate: skip if already present
+    if (points_set_.find(rounded_point) != points_set_.end()) {
+      continue;
+    }
+    
+    points_set_.insert(rounded_point);
+    points_order_.push_back(rounded_point);
   }
   
-  // Memory management - remove oldest points if exceeding limit
-  if (static_cast<int>(points_.size()) > config_.max_points) {
-    std::vector<Point3D> points_vector(points_.begin(), points_.end());
-    
-    // Sort by distance from origin, keep closest points
-    std::sort(points_vector.begin(), points_vector.end(),
-      [](const Point3D& a, const Point3D& b) {
-        float dist_a = a.x * a.x + a.y * a.y + a.z * a.z;
-        float dist_b = b.x * b.x + b.y * b.y + b.z * b.z;
-        return dist_a < dist_b;
-      });
-    
-    points_.clear();
-    for (int i = 0; i < config_.max_points && i < static_cast<int>(points_vector.size()); ++i) {
-      points_.insert(points_vector[i]);
-    }
+  // Memory management - FIFO eviction: remove oldest points if exceeding limit
+  while (static_cast<int>(points_order_.size()) > config_.max_points) {
+    points_set_.erase(points_order_.front());
+    points_order_.pop_front();
   }
   
   points_changed_ = true;
@@ -51,7 +46,7 @@ void PointCloudAggregator::addPoints(const std::vector<Point3D>& new_points)
 std::vector<Point3D> PointCloudAggregator::getPointsCopy() const
 {
   std::lock_guard<std::mutex> lock(points_mutex_);
-  return std::vector<Point3D>(points_.begin(), points_.end());
+  return std::vector<Point3D>(points_order_.begin(), points_order_.end());
 }
 
 bool PointCloudAggregator::hasChanges() const
@@ -67,7 +62,7 @@ void PointCloudAggregator::markSaved()
 int PointCloudAggregator::getPointCount() const
 {
   std::lock_guard<std::mutex> lock(points_mutex_);
-  return static_cast<int>(points_.size());
+  return static_cast<int>(points_set_.size());
 }
 
 LidarToPointCloudNode::LidarToPointCloudNode()
@@ -102,7 +97,7 @@ void LidarToPointCloudNode::declareParameters()
   this->declare_parameter("map_name", "3d_map");
   this->declare_parameter("map_save", "true");
   this->declare_parameter("save_interval", 10.0);
-  this->declare_parameter("max_points", 5000);
+  this->declare_parameter("max_points", 600000);
   this->declare_parameter("voxel_size", 0.01);
 }
 

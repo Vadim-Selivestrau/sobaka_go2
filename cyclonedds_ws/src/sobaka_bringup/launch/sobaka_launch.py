@@ -43,11 +43,11 @@ def generate_launch_description():
             name='pointcloud_aggregator',
             parameters=[{
                 'max_range': 20.0,
-                'min_range': 0.1,
-                'height_filter_min': -2.0,
+                'min_range': 0.3,
+                'height_filter_min': -1.0,
                 'height_filter_max': 3.0,
-                'downsample_rate': 1,
-                'publish_rate': 10.0
+                'downsample_rate': 10,
+                'publish_rate': 20.0
             }],
         ),
         # Step 3: Convert filtered point cloud to LaserScan (removes legs via min_height)
@@ -56,20 +56,20 @@ def generate_launch_description():
             executable='pointcloud_to_laserscan_node',
             name='go2_pointcloud_to_laserscan',
             remappings=[
-                ('cloud_in', '/pointcloud/filtered'),
+                ('cloud_in', '/pointcloud/downsampled'),
                 ('scan', '/scan'),
             ],
             parameters=[{
-                'target_frame': 'laser_frame',
-                'max_height': 2.0,
+                'target_frame': 'base_link',
+                'max_height': 3.0,
                 'min_height': -0.2,
                 'angle_min': -3.14159,
                 'angle_max': 3.14159,
-                'angle_increment': 0.0174533,
-                'scan_time': 0.033,
-                'range_min': 0.1,
+                'angle_increment': 0.00872665,
+                'scan_time': 0.1,
+                'range_min': 0.3,
                 'range_max': 20.0,
-                'use_inf': False,
+                'use_inf': True,
                 'concurrency_level': 1,
             }],
             output='screen',
