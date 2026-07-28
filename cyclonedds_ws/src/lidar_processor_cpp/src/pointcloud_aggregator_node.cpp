@@ -195,10 +195,10 @@ void PointCloudAggregatorNode::publishCallback()
     cloud_to_publish->height = 1;
     cloud_to_publish->is_dense = true;
     
-    // Create header
+    // Create header — keep utlidar_lidar frame so RViz uses static TF to position correctly
     std_msgs::msg::Header header;
     header.stamp = this->get_clock()->now();
-    header.frame_id = "base_link";
+    header.frame_id = "utlidar_lidar";
     
     // Publish filtered cloud
     sensor_msgs::msg::PointCloud2 filtered_msg;

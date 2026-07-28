@@ -43,7 +43,7 @@ def generate_launch_description():
             name='pointcloud_aggregator',
             parameters=[{
                 'max_range': 20.0,
-                'min_range': 0.3,
+                'min_range': 0.45,
                 'height_filter_min': -1.0,
                 'height_filter_max': 3.0,
                 'downsample_rate': 10,
@@ -61,14 +61,14 @@ def generate_launch_description():
             ],
             parameters=[{
                 'target_frame': 'base_link',
-                'max_height': 3.0,
+                'max_height': 0.2,
                 'min_height': -0.2,
                 'angle_min': -3.14159,
                 'angle_max': 3.14159,
                 'angle_increment': 0.00872665,
                 'scan_time': 0.1,
-                'range_min': 0.3,
-                'range_max': 20.0,
+                'range_min': 0.45,
+                'range_max': 10.0,
                 'use_inf': True,
                 'concurrency_level': 1,
             }],
@@ -84,12 +84,12 @@ def generate_launch_description():
         output='screen',
     )
 
-    # Static TF: base_link -> laser_frame (LiDAR is at the front of the robot)
-    laser_static_tf = Node(
+    # Static TF: base_link -> utlidar_lidar (LiDAR is at the front of the robot, rotated 180° around Z)
+    lidar_static_tf = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
-        name='base_link_to_laser_frame',
-        arguments=['0.19', '0', '0.06', '0', '0', '0', 'base_link', 'laser_frame'],
+        name='base_link_to_utlidar_lidar',
+        arguments=['0.19', '0', '0.06', '0', '3.14159', '0', 'base_link', 'utlidar_lidar'],
     )
 
     # SLAM Toolbox: subscribes to /scan, publishes /map + tf map->odom
@@ -107,7 +107,7 @@ def generate_launch_description():
         # IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(joystick)),
         odom_publisher_node,
-        laser_static_tf,
+        lidar_static_tf,
         *lidar_pipeline_nodes,
         slam_node,
     ])
