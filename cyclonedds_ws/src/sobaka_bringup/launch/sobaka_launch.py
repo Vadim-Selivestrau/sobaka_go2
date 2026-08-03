@@ -23,44 +23,44 @@ def generate_launch_description():
 
     # LiDAR pipeline: point_cloud2 -> aggregated -> filtered -> /scan
     lidar_pipeline_nodes = [
-        Node(
-            package='lidar_processor_cpp',
-            executable='lidar_to_pointcloud_node',
-            name='lidar_to_pointcloud',
-            remappings=[
-                ('/point_cloud2', '/utlidar/cloud'), 
-            ],
-            parameters=[{
-                # 'robot_ip_lst': [],
-                'map_name': '3d_map',
-                'map_save': 'true'
-            }],
-        ),
-        # Step 2: Filter aggregated cloud (range, height, statistical outlier removal)
-        Node(
-            package='lidar_processor_cpp',
-            executable='pointcloud_aggregator_node',
-            name='pointcloud_aggregator',
-            parameters=[{
-                'max_range': 20.0,
-                'min_range': 0.45,
-                'height_filter_min': -1.0,
-                'height_filter_max': 3.0,
-                'downsample_rate': 10,
-                'publish_rate': 20.0
-            }],
-        ),
+        # Node(
+        #     package='lidar_processor_cpp',
+        #     executable='lidar_to_pointcloud_node',
+        #     name='lidar_to_pointcloud',
+        #     remappings=[
+        #         ('/point_cloud2', '/utlidar/cloud'), 
+        #     ],
+        #     parameters=[{
+        #         # 'robot_ip_lst': [],
+        #         'map_name': '3d_map',
+        #         'map_save': 'true'
+        #     }],
+        # ),
+        # # Step 2: Filter aggregated cloud (range, height, statistical outlier removal)
+        # Node(
+        #     package='lidar_processor_cpp',
+        #     executable='pointcloud_aggregator_node',
+        #     name='pointcloud_aggregator',
+        #     parameters=[{
+        #         'max_range': 20.0,
+        #         'min_range': 0.45,
+        #         'height_filter_min': -1.0,
+        #         'height_filter_max': 3.0,
+        #         'downsample_rate': 10,
+        #         'publish_rate': 20.0
+        #     }],
+        # ),
         # Step 3: Convert filtered point cloud to LaserScan (removes legs via min_height)
         Node(
             package='pointcloud_to_laserscan',
             executable='pointcloud_to_laserscan_node',
             name='go2_pointcloud_to_laserscan',
             remappings=[
-                ('cloud_in', '/pointcloud/downsampled'),
+                ('cloud_in', '/utlidar/cloud_deskewed'),
                 ('scan', '/scan'),
             ],
             parameters=[{
-                'target_frame': 'base_link',
+                'target_frame': 'odom',
                 'max_height': 0.2,
                 'min_height': -0.2,
                 'angle_min': -3.14159,
@@ -75,6 +75,9 @@ def generate_launch_description():
             output='screen',
         ),
     ]
+                # 'angle_min': -1.57,
+                # 'angle_max': 1.57,
+                # 'angle_increment': 0.00436665,
 
     # Odom publisher: subscribes to /utlidar/robot_pose, publishes /odom + TF odom->base_link
     odom_publisher_node = Node(
@@ -100,6 +103,28 @@ def generate_launch_description():
         output='screen',
         parameters=['/home/user/unitree_ros2/cyclonedds_ws/src/config/mapper_params_online_async.yaml'],
     )
+    rtab_slam = Node(
+        package='rtabmap_slam', executable='rtabmap', output='screen',
+        parameters=[{
+            'frame_id':'utlidar_lidar',
+            'odom_frame_id': 'odom',           
+            'subscribe_depth':False,
+            'subscribe_rgb':False,
+            'subscribe_scan_cloud':True,
+            'approx_sync':True, #False
+            'wait_for_transform_duration':0.5, #0.2
+            'tf_delay':0.66,
+            'use_sim_time':False,
+            'sync_queue_size':50,
+            'topic_queue_size':50,
+            'map_always_update':True,
+        }],
+
+        remappings=[
+            ('scan_cloud', '/utlidar/cloud_deskewed'),
+            ('odom', '/utlidar/robot_odom')
+        ]
+    )
 
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
@@ -108,6 +133,7 @@ def generate_launch_description():
         IncludeLaunchDescription(PythonLaunchDescriptionSource(joystick)),
         odom_publisher_node,
         lidar_static_tf,
-        *lidar_pipeline_nodes,
-        slam_node,
+        # *lidar_pipeline_nodes,
+        # slam_node,
+        rtab_slam,
     ])

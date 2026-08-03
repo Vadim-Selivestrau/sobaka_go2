@@ -97,7 +97,7 @@ void LidarToPointCloudNode::declareParameters()
   this->declare_parameter("map_name", "3d_map");
   this->declare_parameter("map_save", "true");
   this->declare_parameter("save_interval", 10.0);
-  this->declare_parameter("max_points", 250000);
+  this->declare_parameter("max_points", 500000);
   this->declare_parameter("voxel_size", 0.01);
 }
 

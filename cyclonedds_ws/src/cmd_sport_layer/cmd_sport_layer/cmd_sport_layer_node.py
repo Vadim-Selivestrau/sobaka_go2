@@ -85,6 +85,10 @@ class CmdSportLayer(Node):
             
             self.get_logger().warn(f'No cmd_vel for {dt:.2f}s, sending stop!')
             self.sport_mode_pub.publish(stop_cmd)
+            stop_cmd.header.identity.api_id = 1002 # баланс моде
+            stop_cmd.parameter = json.dumps(params, separators=(',', ':'))
+            self.sport_mode_pub.publish(stop_cmd)
+            self.get_logger().info(f'баланс моде, если ничего не отвечает? ЗАЩИТИТ ОТ ПАДЕНИЯ')
             self.stopped = True 
 
 def main():
