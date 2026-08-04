@@ -118,8 +118,9 @@ def generate_launch_description():
             'sync_queue_size':50,
             'topic_queue_size':50,
             'map_always_update':True,
+            # 'delete_db_on_start':True,
         }],
-
+        arguments=['--delete_db_on_start'],
         remappings=[
             ('scan_cloud', '/utlidar/cloud_deskewed'),
             ('odom', '/utlidar/robot_odom')
@@ -137,3 +138,4 @@ def generate_launch_description():
         # slam_node,
         rtab_slam,
     ])
+#theroboverse

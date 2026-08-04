@@ -13,7 +13,7 @@ class VideoStreamNode(Node):
     def __init__(self):
         super().__init__('video_stream_node')
         self.bridge = CvBridge()
-        self.image_pub = self.create_publisher(Image, '/sobaka_image', 10)
+        self.image_pub = self.create_publisher(Image, '/sobaka_image', 4)
 
         Gst.init(None)
 
