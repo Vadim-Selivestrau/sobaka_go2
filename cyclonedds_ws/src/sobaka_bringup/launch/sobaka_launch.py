@@ -92,9 +92,9 @@ def generate_launch_description():
         package='tf2_ros',
         executable='static_transform_publisher',
         name='base_link_to_utlidar_lidar',
-        arguments=['0.19', '0', '0.06', '0', '3.14159', '0', 'base_link', 'utlidar_lidar'],
+        arguments=['0.28945', '0', '-0.046825', '0', '2.8782', '0', 'base_link', 'utlidar_lidar'],
     )
-
+    
     # SLAM Toolbox: subscribes to /scan, publishes /map + tf map->odom
     slam_node = Node(
         package='slam_toolbox',
@@ -111,13 +111,32 @@ def generate_launch_description():
             'subscribe_depth':False,
             'subscribe_rgb':False,
             'subscribe_scan_cloud':True,
-            'approx_sync':True, #False
-            'wait_for_transform_duration':0.5, #0.2
-            'tf_delay':0.66,
+            'approx_sync':True,
+            'wait_for_transform_duration':0.2,  # Уменьшили для реального времени
+            'tf_delay':0.1,                     # Уменьшили задержку TF
             'use_sim_time':False,
             'sync_queue_size':50,
             'topic_queue_size':50,
-            'map_always_update':True,
+            'map_always_update': True,
+
+            # Ключевые параметры SLAM
+            'Reg/Strategy': '1',                # Используем ICP для лидара
+            'RGBD/ProximityBySpace': 'true',
+            'RGBD/AngularUpdate': '0.1',        # Увеличили до ~6 градусов (было 0.05 - слишком часто)
+            'RGBD/LinearUpdate': '0.2',         # Увеличили до 20 см (было 5 см - создавало миллиард узлов в графе)
+            'Icp/VoxelSize': '0.1',             # Увеличили воксель до 10см для стабильности (было 5 см)
+            'Icp/MaxCorrespondenceDistance': '0.3', # Увеличили до 30см (было 0.1 - слишком строго, срывало трекинг)
+            'Icp/PointToPlane': 'true',         # Включили Point-to-Plane для более точного выравнивания облаков
+
+            # Настройки визуализации и сетки
+            'Grid/AlwaysUpdate': 'true',
+            'Grid/RangeMax':'20.0',
+            'Grid/RayTracing':'true',
+            'Grid/MaxObstacleRange':'20.0',
+            'Grid/MaxEmptyRange':'20.0',
+            'Grid/Scan2dUnknownSpaceFilled':'true',
+            'Grid/MinObstacleRange':'0.3',      # <--- ВАЖНО! Игнорируем объекты ближе 30см, лучи летят дальше
+
             # 'delete_db_on_start':True,
         }],
         arguments=['--delete_db_on_start'],
