@@ -38,7 +38,7 @@ class JoyHandler(Node):
 
 
         R2 = msg.axes[5]   # 1..-1
-        L2 = msg.axes[2]   # 1..-1
+        # L2 = msg.axes[2]   # 1..-1
         L1 = msg.buttons[4]
         R1 = msg.buttons[5]
         R2_button = msg.buttons[7]
@@ -46,7 +46,7 @@ class JoyHandler(Node):
         left_stick_x = msg.axes[0]
         left_stick_y = msg.axes[1]
 
-        right_stick_x = msg.axes[3]
+        right_stick_x = msg.axes[2]
         right_stick_y = msg.axes[4]
 
         cross  = msg.buttons[0]
@@ -154,6 +154,8 @@ class JoyHandler(Node):
             self.get_logger().info(f'Euler: roll={euler_params["x"]:.3f} pitch={euler_params["y"]:.3f} yaw={euler_params["z"]:.3f}')
         else:
             if abs(vx) > 0.1 or abs(vy) > 0.1 or abs(yaw) > 0.1:
+                # self.get_logger().info(f'Euler: roll={vx} pitch={vy} yaw={msg.axes[3]}')
+
                 self.cmd_pub.publish(cur_twist)
 
     # "Damp": 1001,

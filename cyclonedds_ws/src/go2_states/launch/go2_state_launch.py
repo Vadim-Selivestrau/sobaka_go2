@@ -3,7 +3,7 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    urdf_path = '/home/user/unitree_ros2/cyclonedds_ws/src/urdf/go2.urdf' 
+    urdf_path = '/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/urdf/go2.urdf' 
     
     with open(urdf_path, 'r') as f:
         robot_desc = f.read()

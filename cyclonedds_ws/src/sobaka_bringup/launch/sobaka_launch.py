@@ -3,10 +3,13 @@ from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
 import os
+import time
 from launch_ros.actions import Node
-
+from launch.actions import RegisterEventHandler, ExecuteProcess
+from launch.event_handlers import OnProcessExit
 
 def generate_launch_description():
+    unique_db_name = f"/home/jetson/maps/rtabmap_{int(time.time())}.db"
 
     cmd_sport_layer = os.path.join(
         get_package_share_directory('cmd_sport_layer'), 'launch', 'cmd_sport_layer_launch.py'
@@ -101,50 +104,77 @@ def generate_launch_description():
         executable='async_slam_toolbox_node',
         name='slam_toolbox',
         output='screen',
-        parameters=['/home/user/unitree_ros2/cyclonedds_ws/src/config/mapper_params_online_async.yaml'],
+        parameters=['/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/config/mapper_params_online_async.yaml'],
     )
     rtab_slam = Node(
         package='rtabmap_slam', executable='rtabmap', output='screen',
         parameters=[{
-            'frame_id':'utlidar_lidar',
+            'frame_id': 'utlidar_lidar',
             'odom_frame_id': 'odom',           
-            'subscribe_depth':False,
-            'subscribe_rgb':False,
-            'subscribe_scan_cloud':True,
-            'approx_sync':True,
-            'wait_for_transform_duration':0.2,  # Уменьшили для реального времени
-            'tf_delay':0.1,                     # Уменьшили задержку TF
-            'use_sim_time':False,
-            'sync_queue_size':50,
-            'topic_queue_size':50,
+            'subscribe_depth': False,
+            'subscribe_rgb': False,
+            'subscribe_scan_cloud': True,
+            'approx_sync': True,
+            'wait_for_transform_duration': 0.5,
+            'tf_delay': 0.66,
+            'use_sim_time': False,
+            'sync_queue_size': 50,
+            'topic_queue_size': 50,
             'map_always_update': True,
-
-            # Ключевые параметры SLAM
-            'Reg/Strategy': '1',                # Используем ICP для лидара
-            'RGBD/ProximityBySpace': 'true',
-            'RGBD/AngularUpdate': '0.1',        # Увеличили до ~6 градусов (было 0.05 - слишком часто)
-            'RGBD/LinearUpdate': '0.2',         # Увеличили до 20 см (было 5 см - создавало миллиард узлов в графе)
-            'Icp/VoxelSize': '0.1',             # Увеличили воксель до 10см для стабильности (было 5 см)
-            'Icp/MaxCorrespondenceDistance': '0.3', # Увеличили до 30см (было 0.1 - слишком строго, срывало трекинг)
-            'Icp/PointToPlane': 'true',         # Включили Point-to-Plane для более точного выравнивания облаков
-
-            # Настройки визуализации и сетки
-            'Grid/AlwaysUpdate': 'true',
-            'Grid/RangeMax':'20.0',
-            'Grid/RayTracing':'true',
-            'Grid/MaxObstacleRange':'20.0',
-            'Grid/MaxEmptyRange':'20.0',
-            'Grid/Scan2dUnknownSpaceFilled':'true',
-            'Grid/MinObstacleRange':'0.3',      # <--- ВАЖНО! Игнорируем объекты ближе 30см, лучи летят дальше
-
-            # 'delete_db_on_start':True,
+            # 'Icp/PointToPlaneGroundNormalsUp': '1.0',
+            # ===== НОВЫЕ ПАРАМЕТРЫ ДЛЯ БОРЬБЫ С ЧЁРНЫМИ ПЯТНАМИ =====
+            
+            # 1. Увеличьте дальность до максимума вашего лидара (например, 30 или 50 метров)
+            # 'Grid/RangeMax': '30.0',   
+            # 'Grid/RangeMin': '0.2',
+            # 'Grid/Sensor': '0',
+            # 'Grid/3D': 'false',
+            # 'Grid/NormalsSegmentation': 'false',
+            # 'Grid/Scan2dUnknownSpaceFilled': 'true',
+            # 'Grid/3D': 'false',
+            'Grid/Scan2dUnknownSpaceFilled': 'true',
+            # 2. ВКЛЮЧАЕМ трассировку лучей! Это закрасит белым всё пространство между роботом и стенами.
+            # 'Grid/RayTracing': 'true',   
+            # 'Grid/MaxObstacleHeight':'2.0',
+            # # 'Grid/MinGroundHeight': '-0.2',   # Убирает точки ниже -20 см (шум, отражения от пола)
+            # # 'Grid/MaxGroundHeight':'0.1',
+            # # 'Grid/MaxGroundHeight': '2.0',    # Убирает точки выше 2 м (потолок, дальние объекты)
+            #             # 'Grid/MaxGroundHeight': '2.0',    # Игнорировать точки выше 2 метров (например, потолок)
+            # # 3. Явно говорим, что источник — лазерный сканер (0), а не камера глубины.
+            # # 'Grid/Sensor': '0',   
+            # # 'Grid/RayTracing': 'true',          # Включает трассировку лучей – заполняет белым
+            # # 'Grid/3D': 'true',                  # Обязательно для 3D-облака (иначе RayTracing не работает)
+            # 'Grid/Sensor': '0',                 # Явно указываем, что источник – лазерный сканер
+            # 'Grid/RangeMax': '30.0',            # Дальность видимости (увеличь под свой лидар)
+            # 'Grid/RangeMin': '0.2',             # Убираем мусор вокруг робота
+            
+            # 4. Проецируем 3D-облако на 2D плоскость (пол), чтобы не было "провалов" от наклонных лучей.
+            # 'Grid/3D': 'false',   
+            
+            # 5. Отключаем сегментацию по нормалям (для 2D-проекции это лишнее, иначе может вырезать пол).
+            # 'Grid/NormalsSegmentation': 'false',   
+            
+            # 6. Фильтруем мусор прямо перед сенсором (чтобы не рисовал чёрные пиксели вокруг робота).
+            # 'Grid/RangeMin': '0.2',   
         }],
         arguments=['--delete_db_on_start'],
         remappings=[
             ('scan_cloud', '/utlidar/cloud_deskewed'),
             ('odom', '/utlidar/robot_odom')
         ]
-    )
+    )    
+    # save_map_process = ExecuteProcess(
+    #     cmd=['ros2', 'run', 'nav2_map_server', 'map_saver_cli', '-f', '/home/jetson/maps/rtab_2dmap'],
+    #     output='screen'
+    # )
+
+    # Триггер: КОГДА rtabmap закрывается (по Ctrl+C) -> ЗАПУСТИТЬ сохранение 2D карты
+    # save_map_on_exit = RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=rtab_slam,
+    #         on_exit=[save_map_process]
+    #     )
+    # )
 
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
@@ -156,5 +186,7 @@ def generate_launch_description():
         # *lidar_pipeline_nodes,
         # slam_node,
         rtab_slam,
+        # save_map_process,
+        # save_map_on_exit,
     ])
 #theroboverse

@@ -27,7 +27,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/base.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/base.dae" />
       </geometry>
       <material
         name="">
@@ -170,7 +170,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/hip.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/hip.dae" />
       </geometry>
       <material
         name="">
@@ -225,7 +225,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/thigh.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2aka_go2/cyclonedds_ws/src/dae/thigh.dae" />
       </geometry>
       <material
         name="">
@@ -280,7 +280,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/calf.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2aka_go2/cyclonedds_ws/src/dae/calf.dae" />
       </geometry>
       <material
         name="">
@@ -379,7 +379,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/foot.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2aka_go2/cyclonedds_ws/src/dae/foot.dae" />
       </geometry>
       <material
         name="">
@@ -429,7 +429,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="3.1415 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/hip.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2aka_go2/cyclonedds_ws/src/dae/hip.dae" />
       </geometry>
       <material
         name="">
@@ -484,7 +484,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/thigh_mirror.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/thigh_mirror.dae" />
       </geometry>
       <material
         name="">
@@ -539,7 +539,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/calf_mirror.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/calf_mirror.dae" />
       </geometry>
       <material
         name="">
@@ -638,7 +638,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/foot.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/foot.dae" />
       </geometry>
       <material
         name="">
@@ -688,7 +688,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 3.1415 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/hip.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/hip.dae" />
       </geometry>
       <material
         name="">
@@ -743,7 +743,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/thigh.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/thigh.dae" />
       </geometry>
       <material
         name="">
@@ -798,7 +798,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/calf.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/calf.dae" />
       </geometry>
       <material
         name="">
@@ -897,7 +897,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/foot.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/foot.dae" />
       </geometry>
       <material
         name="">
@@ -947,7 +947,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="3.1415 3.1415 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/hip.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/hip.dae" />
       </geometry>
       <material
         name="">
@@ -1002,7 +1002,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/thigh_mirror.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/thigh_mirror.dae" />
       </geometry>
       <material
         name="">
@@ -1057,7 +1057,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/calf_mirror.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/calf_mirror.dae" />
       </geometry>
       <material
         name="">
@@ -1156,7 +1156,7 @@ Stephen Brawner (brawner@gmail.com)
         rpy="0 0 0" />
       <geometry>
         <mesh
-          filename="/home/user/unitree_ros2/cyclonedds_ws/src/dae/foot.dae" />
+          filename="/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/dae/foot.dae" />
       </geometry>
       <material
         name="">
