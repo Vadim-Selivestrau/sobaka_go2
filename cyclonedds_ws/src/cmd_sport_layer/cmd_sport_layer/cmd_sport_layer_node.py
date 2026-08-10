@@ -37,7 +37,7 @@ class CmdSportLayer(Node):
         sport_mode = Request()
 
 
-        max_lin = 0.6   
+        max_lin = 0.9   
         max_ang = 2.0
 
         vx = max(-max_lin, min(max_lin, msg.linear.x))
