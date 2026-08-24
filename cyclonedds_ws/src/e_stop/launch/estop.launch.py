@@ -13,7 +13,7 @@ def generate_launch_description():
             package='twist_mux',
             executable='twist_mux',
             name='twist_mux',
-            remappings=[('/cmd_vel_out', '/cmd_vel')], 
+            # remappings=[('/cmd_vel_out', '/cmd_vel')], 
             parameters=['/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/config/twist_mux.yaml']
         )
     ])

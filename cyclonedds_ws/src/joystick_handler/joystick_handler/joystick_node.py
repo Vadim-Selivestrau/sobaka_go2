@@ -106,46 +106,40 @@ class JoyHandler(Node):
             self.sport_mode_pub.publish(sport_mode)
             self.get_logger().info(f'сели')
 
-        if square > 0.0:
-            sport_mode.header.identity.api_id = 1009 # режим миномёта
-            sport_mode.parameter = json.dumps(params, separators=(',', ':'))
+        # if square > 0.0:
+        #     sport_mode.header.identity.api_id = 1009 # режим миномёта
+        #     sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
-            self.sport_mode_pub.publish(sport_mode)  
-            self.get_logger().info(f'режим миномёта')
+        #     self.sport_mode_pub.publish(sport_mode)  
+        #     self.get_logger().info(f'режим миномёта')
 
-        if triangle > 0.0:
-            sport_mode.header.identity.api_id = 1017 # Потянуться
-            sport_mode.parameter = json.dumps(params, separators=(',', ':'))
+        # if triangle > 0.0:
+        #     sport_mode.header.identity.api_id = 1017 # Потянуться
+        #     sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
-            self.sport_mode_pub.publish(sport_mode)  
-            self.get_logger().info(f'потягушки!')
+        #     self.sport_mode_pub.publish(sport_mode)  
+        #     self.get_logger().info(f'потягушки!')
 
-        if circle > 0.0:
-            sport_mode.header.identity.api_id = 1016 # hello
-            sport_mode.parameter = json.dumps(params, separators=(',', ':'))
+        # if circle > 0.0:
+        #     sport_mode.header.identity.api_id = 1016 # hello
+        #     sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
-            self.sport_mode_pub.publish(sport_mode)  
-            self.get_logger().info(f'привет')
+        #     self.sport_mode_pub.publish(sport_mode)  
+        #     self.get_logger().info(f'привет')
 
-        if cross > 0.0:
-            sport_mode.header.identity.api_id = 1033 # виляние
-            sport_mode.parameter = json.dumps(params, separators=(',', ':'))
+        # if cross > 0.0:
+        #     sport_mode.header.identity.api_id = 1033 # виляние
+        #     sport_mode.parameter = json.dumps(params, separators=(',', ':'))
 
-            self.sport_mode_pub.publish(sport_mode) 
-            self.get_logger().info(f'виляние!') 
+        #     self.sport_mode_pub.publish(sport_mode) 
+        #     self.get_logger().info(f'виляние!') 
 
 
 
-        # Euler (pose) — roll/pitch/yaw via API 1007
-        # JSON keys: x=roll, y=pitch, z=yaw (see ros2_sport_client.cpp Euler())
-        # roll:  [-0.75,  0.75] rad,  mapped from left_stick_x ([-1, 1])
-        # pitch: [-0.75,  0.75] rad,  mapped from left_stick_y ([-1, 1])
-        # yaw:   [-0.6,   0.6 ] rad,  mapped from right_stick_y ([-1, 1])
         if R1 > 0.0:
             euler_params = {}
             euler_params["x"] = round(left_stick_x * 0.75, 4)
             euler_params["y"] = round(left_stick_y * 0.75, 4)
-            # euler_params["z"] = round(right_stick_y * 0, 4)
 
             sport_mode = Request()
             sport_mode.header.identity.api_id = 1007
@@ -157,6 +151,14 @@ class JoyHandler(Node):
                 # self.get_logger().info(f'Euler: roll={vx} pitch={vy} yaw={msg.axes[3]}')
 
                 self.cmd_pub.publish(cur_twist)
+            # else:
+            #     # надо ли? По факту дублирование из колбэка
+            #     cur_twist = Twist()
+            #     cur_twist.linear.x = 0.0
+            #     cur_twist.linear.y =  0.0
+            #     cur_twist.angular.z = 0.0
+            #     self.cmd_pub.publish(cur_twist)
+
 
     # "Damp": 1001,
     # "BalanceStand": 1002,

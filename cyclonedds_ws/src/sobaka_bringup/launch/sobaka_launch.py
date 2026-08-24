@@ -33,8 +33,7 @@ def generate_launch_description():
 
     nav2 = GroupAction(
         actions=[
-            SetRemap(src='cmd_vel', dst='cmd_vel_nav'),
-
+            
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(get_package_share_directory('nav2_bringup'),
@@ -43,13 +42,13 @@ def generate_launch_description():
                 launch_arguments={
                     'use_composition': 'False',
                     'params_file': '/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/config/nav2_params.yaml',
+                    'cmd_vel_topic': '/cmd_vel_nav'
                 }.items(),
             ),
         ]
     )
 
 
-    # Static TF: base_link -> utlidar_lidar (LiDAR is at the front of the robot, rotated 180° around Z)
     lidar_static_tf = Node(
         package='tf2_ros',
         executable='static_transform_publisher',
@@ -71,64 +70,61 @@ def generate_launch_description():
     rtab_slam = Node(
         package='rtabmap_slam', executable='rtabmap', output='screen',
         parameters=[{
-            # 'frame_id': 'utlidar_lidar',
-            # 'odom_frame_id': 'odom',           
-            # 'odom_sensor_sync': True,
-            # 'subscribe_depth': False,
-            # 'subscribe_rgb': False,
-            # 'subscribe_scan_cloud': True,
-            # 'approx_sync': True,
-            # 'wait_for_transform_duration': 0.5,
-            # # 'tf_delay': 0.66,
-            # 'use_sim_time': False,
-            # 'sync_queue_size': 50,
-            # 'topic_queue_size': 50,
-            # # 'map_always_update': True,
-        
-        
-            #gemini params
-            'frame_id': 'base_link',             # Фрейм робота (НЕ utlidar_lidar)
-            'odom_frame_id': 'odom',           
+            'frame_id': 'base_link',
+            'odom_frame_id': 'odom',
             'subscribe_depth': False,
             'subscribe_rgb': False,
             'subscribe_scan_cloud': True,
             'approx_sync': True,
-            'wait_for_transform_duration': 0.2,
+            'wait_for_transform_duration': 1.2,
             'use_sim_time': False,
-            'sync_queue_size': 30,
-            'topic_queue_size': 30,
-
-            # --- Сетка и фильтры ---
+            'sync_queue_size': 15,
+            'topic_queue_size': 15,
             'map_always_update': True, 
-            'Grid/RangeMax': '12.0',  
-            # 'Grid/MinGroundHeight': '-0.30',    # Настраивайте от уровня base_link до пола!
-            'Grid/MaxObstacleHeight': '3.0',
-            # 'Grid/RayTracing': 'true',          # Очищает пространство за удаленными препятствиями
 
-            # --- ICP настройки (для 3D облака) ---
-            'Reg/Strategy': '1',                # 1 = ICP
-            'Icp/CorrespondenceRatio': '0.35',  # Жесткая проверка совпадения
-            'Icp/MaxTranslation': '0.5',        # Макс. сдвиг за один шаг (защита от скачков)
+
+            'Grid/RangeMax': '15.0',  
+            'Grid/MaxObstacleHeight': '3.0',
+            'Grid/NormalsSegmentation': 'false', 
+            'Grid/MaxGroundHeight': '-0.2',
+            'Grid/MinGroundHeight': '-0.35', 
+
+
+            'Reg/Strategy': '1',
+            'Reg/Force3DoF': 'true',
+
+
+            'Icp/CorrespondenceRatio': '0.35',
+            'Icp/MaxTranslation': '0.5',
             'Icp/PointToPlane': 'true',
             'Icp/PointToPlaneK': '20',
             'Icp/VoxelSize': '0.05',
+            'Icp/PointToPlaneMinComplexity': '0.0',
+            'Icp/MaxCorrespondenceDistance': '0.15',
             'Icp/Iterations': '30',
-            'Reg/Force3DoF': 'true',
-            # --- Защита от ложных замыканий графа ---
-            'RGBD/OptimizeMaxError': '1.0',     # Отбрасывать совпадения с ошибкой > 1м
+            'Icp/PointToPlane': 'false',
+            'Icp/CorrespondenceRatio': '0.5',
+            'Icp/MaxCorrespondenceDistance': '0.1',
+
+
+            'RGBD/OptimizeMaxError': '1.0',     
             'RGBD/NeighborLinkRefinement': 'true',
             'RGBD/ProximityBySpace': 'true',
             'RGBD/ProximityPathMaxNeighbors': '10',
-            'Grid/NormalsSegmentation': 'false', # Простая и надежная фильтрация по высоте
-            'Grid/MaxGroundHeight': '-0.2',       # Все, что от Min до +10см — это пол (белая зона)
-            'Grid/MinGroundHeight': '-0.35',     # Нижняя точка (расстояние от base_link до земли)
+
+
+            'Vis/FeatureType': '0', # 0 = None
+            'Mem/ImagePreUpdate': 'false',
+
         }],
         arguments=['--delete_db_on_start'],
         remappings=[
             ('scan_cloud', '/utlidar/cloud_deskewed'),
-            ('odom', '/utlidar/robot_odom')
+            ('odom', '/utlidar/robot_odom'),
+            ('imu', '/utlidar/imu'),
         ]
-    )    
+    )  
+
 
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
@@ -139,8 +135,7 @@ def generate_launch_description():
         odom_publisher_node,
         nav2,
         lidar_static_tf,
-        # *lidar_pipeline_nodes,
-        # slam_node,
+
         rtab_slam,
         # save_map_process,
         # save_map_on_exit,

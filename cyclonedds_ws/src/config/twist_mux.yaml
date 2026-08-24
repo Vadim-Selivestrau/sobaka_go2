@@ -9,11 +9,16 @@ twist_mux:
       navigation:
         topic:   "cmd_vel_nav"
         timeout: 0.5
-        priority: 10            
+        priority: 10           
+
+      navigation:
+        topic:   "cmd_vel"
+        timeout: 0.5
+        priority: 10    
 
 
     locks:
       e_stop:
         topic:   "estop"
-        timeout: 1.0
+        timeout: 0.0
         priority: 255           

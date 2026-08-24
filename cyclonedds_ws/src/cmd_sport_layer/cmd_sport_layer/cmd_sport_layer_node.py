@@ -11,7 +11,7 @@ class CmdSportLayer(Node):
         
         self.cmd_sub = self.create_subscription(
             Twist,
-            '/cmd_vel',
+            '/cmd_vel_out',
             self.cmd_callback,
             10
         )
