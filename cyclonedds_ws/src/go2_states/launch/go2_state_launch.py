@@ -24,5 +24,12 @@ def generate_launch_description():
             executable='joint_state_publisher', 
             name='go2_joint_state_publisher',
             output='screen'
-        )
+        ),
+
+        # Node(
+        #     package='go2_states',
+        #     executable='leg_odom',
+        #     name='leg_odom',
+        #     output='screen'
+        # )
     ])

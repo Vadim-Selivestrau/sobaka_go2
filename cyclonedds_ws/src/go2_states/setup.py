@@ -30,6 +30,9 @@ setup(
             'joint_state_publisher = go2_states.joint_state_publisher:main',
             'odom_publisher = go2_states.odom_publisher:main',
             'imu_pub = go2_states.clean_imu_node:main',
+            'pose_pub = go2_states.double_integrate:main',
+            'leg_odom = go2_states.leg_odom:main',
+            'new_odom = go2_states.newodom:main',
         ],
     },
 )

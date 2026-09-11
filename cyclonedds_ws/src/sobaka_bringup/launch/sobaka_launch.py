@@ -33,7 +33,6 @@ def generate_launch_description():
 
     nav2 = GroupAction(
         actions=[
-            
             IncludeLaunchDescription(
                 PythonLaunchDescriptionSource(
                     os.path.join(get_package_share_directory('nav2_bringup'),
@@ -58,8 +57,8 @@ def generate_launch_description():
     estop = os.path.join(
         get_package_share_directory('e_stop'), 'launch', 'estop.launch.py'
     )
-    
-    # SLAM Toolbox: subscribes to /scan, publishes /map + tf map->odom
+
+
     slam_node = Node(
         package='slam_toolbox',
         executable='async_slam_toolbox_node',
@@ -67,6 +66,34 @@ def generate_launch_description():
         output='screen',
         parameters=['/home/jetson/sobaka/sobaka_go2/cyclonedds_ws/src/config/mapper_params_online_async.yaml'],
     )
+    icp_odom = Node(
+        package='rtabmap_odom', executable='icp_odometry', output='screen',
+        parameters=[{
+            'frame_id': 'base_link',
+            'odom_frame_id': 'icp_odom',
+            'publish_tf': False,
+            'wait_for_transform_duration': 0.2,
+            'subscribe_scan_cloud': True,
+            'approx_sync': True,
+            'guess_frame_id': 'zupt_odom',
+            'guess_min_translation': 0.0,
+            'guess_min_rotation': 0.0,
+            'deskewing': False,
+
+            'Icp/PointToPlane': 'true',
+            'Icp/PointToPlaneK': '20',
+            'Icp/VoxelSize': '0.05',
+            'Icp/CorrespondenceRatio': '0.4',
+            'Icp/MaxCorrespondenceDistance': '0.15',
+            'Icp/Iterations': '30',
+            'Odom/Strategy': '0',
+            'Odom/ResetCountdown': '1',
+        }],
+        remappings=[
+            ('scan_cloud', '/utlidar/cloud'),   
+            ('odom', '/icp_odom'),
+        ],
+    )    
     rtab_slam = Node(
         package='rtabmap_slam', executable='rtabmap', output='screen',
         parameters=[{
@@ -81,49 +108,57 @@ def generate_launch_description():
             'sync_queue_size': 15,
             'topic_queue_size': 15,
             'map_always_update': True, 
-
+            'publish_tf': True,
 
             'Grid/RangeMax': '15.0',  
-            'Grid/MaxObstacleHeight': '3.0',
-            'Grid/NormalsSegmentation': 'false', 
+            'Grid/MaxObstacleHeight': '2.8',
+            'Grid/NormalsSegmentation': 'true', 
             'Grid/MaxGroundHeight': '-0.2',
             'Grid/MinGroundHeight': '-0.35', 
+            'Grid/NoiseFilteringRadius': '0.3',
+            'Grid/NoiseFilteringMinNeighbors': '8',
+            'Grid/ClusterRadius': '0.25',
+            'Grid/MinClusterSize': '10',
+            'Grid/RayTracing': 'true', 
 
 
             'Reg/Strategy': '1',
             'Reg/Force3DoF': 'true',
 
 
-            'Icp/CorrespondenceRatio': '0.35',
-            'Icp/MaxTranslation': '0.5',
+            'Icp/CorrespondenceRatio': '0.6',
+            'Icp/MaxTranslation': '1.5',
             'Icp/PointToPlane': 'true',
             'Icp/PointToPlaneK': '20',
             'Icp/VoxelSize': '0.05',
-            'Icp/PointToPlaneMinComplexity': '0.0',
-            'Icp/MaxCorrespondenceDistance': '0.15',
+            'Icp/PointToPlaneMinComplexity': '0.02',
+            'Icp/MaxCorrespondenceDistance': '0.3',
             'Icp/Iterations': '30',
-            'Icp/PointToPlane': 'false',
-            'Icp/CorrespondenceRatio': '0.5',
-            'Icp/MaxCorrespondenceDistance': '0.1',
 
-
-            'RGBD/OptimizeMaxError': '1.0',     
+            'RGBD/OptimizeMaxError': '0.3',     
             'RGBD/NeighborLinkRefinement': 'true',
             'RGBD/ProximityBySpace': 'true',
             'RGBD/ProximityPathMaxNeighbors': '10',
+            # 'RGBD/LocalRadius': '7',
+            'RGBD/AngularUpdate': '0.05',
+            'RGBD/LinearUpdate': '0.05',
 
+            'Vis/FeatureType': '0',
 
-            'Vis/FeatureType': '0', # 0 = None
             'Mem/ImagePreUpdate': 'false',
-
         }],
         arguments=['--delete_db_on_start'],
         remappings=[
+            # ('scan_cloud', '/utlidar/cloud'),
             ('scan_cloud', '/utlidar/cloud_deskewed'),
-            ('odom', '/utlidar/robot_odom'),
-            ('imu', '/utlidar/imu'),
+            # ('odom', '/odom'),
+            # ('odom', '/icp_odom'),
+            ('odom', '/go2/odom_from_sport'),
+            # ('odom', '/utlidar/robot_odom'),
+            # ('odom', '/odometry/filtered'),
+            # ('imu', '/imu/data_clean'),
         ]
-    )  
+    )
 
 
     return LaunchDescription([
@@ -132,12 +167,9 @@ def generate_launch_description():
         # IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(joystick)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(estop)),
+        # icp_odom,
         odom_publisher_node,
         nav2,
         lidar_static_tf,
-
         rtab_slam,
-        # save_map_process,
-        # save_map_on_exit,
     ])
-#theroboverse
