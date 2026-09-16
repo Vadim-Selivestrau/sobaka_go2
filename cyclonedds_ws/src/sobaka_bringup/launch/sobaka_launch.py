@@ -75,7 +75,7 @@ def generate_launch_description():
             'wait_for_transform_duration': 0.2,
             'subscribe_scan_cloud': True,
             'approx_sync': True,
-            'guess_frame_id': 'zupt_odom',
+            'guess_frame_id': 'odom',
             'guess_min_translation': 0.0,
             'guess_min_rotation': 0.0,
             'deskewing': False,
@@ -108,7 +108,7 @@ def generate_launch_description():
             'sync_queue_size': 15,
             'topic_queue_size': 15,
             'map_always_update': True, 
-            'publish_tf': True,
+            'publish_tf': True, #True,
 
             'Grid/RangeMax': '15.0',  
             'Grid/MaxObstacleHeight': '2.8',
@@ -126,31 +126,39 @@ def generate_launch_description():
             'Reg/Force3DoF': 'true',
 
 
-            'Icp/CorrespondenceRatio': '0.6',
+            'Icp/CorrespondenceRatio': '0.2',
+            'Icp/Strategy': '1',
             'Icp/MaxTranslation': '1.5',
             'Icp/PointToPlane': 'true',
             'Icp/PointToPlaneK': '20',
             'Icp/VoxelSize': '0.05',
             'Icp/PointToPlaneMinComplexity': '0.02',
-            'Icp/MaxCorrespondenceDistance': '0.3',
+            'Icp/MaxCorrespondenceDistance': '0.5',
             'Icp/Iterations': '30',
 
-            'RGBD/OptimizeMaxError': '0.3',     
+            'RGBD/OptimizeMaxError': '5.0',             
+            'RGBD/PlanarSLAM': 'true',    
             'RGBD/NeighborLinkRefinement': 'true',
             'RGBD/ProximityBySpace': 'true',
+            'RGBD/ProximityMaxGraphDepth': '50',
             'RGBD/ProximityPathMaxNeighbors': '10',
-            # 'RGBD/LocalRadius': '7',
+            'RGBD/LocalRadius': '5.0',
             'RGBD/AngularUpdate': '0.05',
             'RGBD/LinearUpdate': '0.05',
 
+            'Kp/MaxFeatures': '-1',         
+
             'Vis/FeatureType': '0',
 
+            'Mem/IncrementalMemory': 'true',
             'Mem/ImagePreUpdate': 'false',
+            'Registration/Strategy': '1',  
+            
         }],
         arguments=['--delete_db_on_start'],
         remappings=[
-            # ('scan_cloud', '/utlidar/cloud'),
-            ('scan_cloud', '/utlidar/cloud_deskewed'),
+            ('scan_cloud', '/utlidar/cloud'),
+            # ('scan_cloud', '/utlidar/cloud_deskewed'),
             # ('odom', '/odom'),
             # ('odom', '/icp_odom'),
             ('odom', '/go2/odom_from_sport'),
