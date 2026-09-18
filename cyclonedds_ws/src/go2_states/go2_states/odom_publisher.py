@@ -1,23 +1,9 @@
 #!/usr/bin/env python3
-"""
-Одометрия Go2 на основе /lf/sportmodestate (leg odometry) с ZUPT-коррекцией.
 
-Проблема, которую решает этот файл:
-  - position.x/y и yaw дрейфуют даже когда робот физически стоит на месте
-    (bias гироскопа/акселерометра, интегрируемый внутренней прошивкой).
-  - Из-за дрейфа yaw карта в SLAM "плывёт" (стены будто отдаляются/уезжают),
-    даже если position уже исправлен.
 
-Решение (ZUPT — Zero-Velocity Update), отдельно для x/y и для yaw:
-  - Пока скорость (vx, vy) ниже порога -> считаем робота неподвижным.
-  - Пока неподвижен: непрерывно пересчитываем offset так, чтобы
-    выходное значение оставалось равным последнему "хорошему" (замороженному).
-  - Как только скорость выше порога -> offset больше не трогаем (замораживаем),
-    дальше на выход идёт raw-значение минус этот фиксированный offset,
-    поэтому реальное движение проходит без искажений и без скачка.
-"""
-
+import json
 import math
+import os
 
 import rclpy
 from rclpy.node import Node
@@ -47,22 +33,28 @@ class OdomPublisher(Node):
             'sport_mode_state_topic', '/lf/sportmodestate'
         ).value
         self.vel_threshold_ = self.declare_parameter(
-            'vel_threshold', 0.03  
+            'vel_threshold', 0.03
         ).value
         self.yaw_rate_threshold_ = self.declare_parameter(
-            'yaw_rate_threshold', 0.03  
+            'yaw_rate_threshold', 0.03
         ).value
-
+        self.state_file_ = self.declare_parameter(
+            'state_file', '/tmp/go2_odom_state.json'
+        ).value
+        self.state_save_period_ = self.declare_parameter(
+            'state_save_period', 2.0  # сек, throttle периодического сохранения
+        ).value
 
         self.offset_x_ = 0.0
         self.offset_y_ = 0.0
         self.last_good_x_ = 0.0
         self.last_good_y_ = 0.0
 
-
         self.yaw_offset_ = 0.0
         self.last_good_yaw_ = 0.0
 
+        # Восстановление состояния с прошлого запуска (если было)
+        self._load_state()
 
         self.odom_pub_ = self.create_publisher(
             Odometry,
@@ -84,8 +76,47 @@ class OdomPublisher(Node):
             qos,
         )
 
+        # периодическое сохранение состояния на диск (throttled),
+        # чтобы штатный рестарт ноды не терял привязку к карте
+        self._state_timer_ = self.create_timer(
+            self.state_save_period_, self._save_state
+        )
+
         self.get_logger().info(f'Go2OdomPublisher listening on {self.sport_topic_}')
-        self.get_logger().info(f'Publishing odometry on /go2/odom_from_sport')
+        self.get_logger().info('Publishing odometry on /go2/odom_from_sport')
+        self.get_logger().info(
+            f'Restored last_good pose: '
+            f'x={self.last_good_x_:.3f} y={self.last_good_y_:.3f} '
+            f'yaw={self.last_good_yaw_:.3f}'
+        )
+
+    # ---------- персистентность состояния ----------
+
+    def _load_state(self):
+        if os.path.exists(self.state_file_):
+            try:
+                with open(self.state_file_, 'r') as f:
+                    st = json.load(f)
+                self.last_good_x_ = float(st.get('x', 0.0))
+                self.last_good_y_ = float(st.get('y', 0.0))
+                self.last_good_yaw_ = float(st.get('yaw', 0.0))
+            except Exception as e:
+                self.get_logger().warn(f'Failed to load odom state: {e}')
+
+    def _save_state(self):
+        try:
+            tmp_path = self.state_file_ + '.tmp'
+            with open(tmp_path, 'w') as f:
+                json.dump({
+                    'x': self.last_good_x_,
+                    'y': self.last_good_y_,
+                    'yaw': self.last_good_yaw_,
+                }, f)
+            os.replace(tmp_path, self.state_file_)  # атомарная замена
+        except Exception as e:
+            self.get_logger().warn(f'Failed to save odom state: {e}')
+
+    # ---------- основной колбэк ----------
 
     def sport_mode_callback(self, msg: SportModeState):
         now = self.get_clock().now().to_msg()
@@ -112,7 +143,6 @@ class OdomPublisher(Node):
             and abs(yaw_rate) < self.yaw_rate_threshold_
         )
 
-
         if is_stopped:
             self.offset_x_ = raw_x - self.last_good_x_
             self.offset_y_ = raw_y - self.last_good_y_
@@ -123,7 +153,6 @@ class OdomPublisher(Node):
         corrected_x = raw_x - self.offset_x_
         corrected_y = raw_y - self.offset_y_
 
-
         if is_stopped:
             self.yaw_offset_ = raw_yaw - self.last_good_yaw_
         else:
@@ -132,7 +161,6 @@ class OdomPublisher(Node):
         corrected_yaw = raw_yaw - self.yaw_offset_
         qx, qy, qz, qw = yaw_to_quat(corrected_yaw)
 
-
         odom = Odometry()
         odom.header.stamp = now
         odom.header.frame_id = self.odom_frame_
@@ -140,7 +168,7 @@ class OdomPublisher(Node):
 
         odom.pose.pose.position.x = corrected_x
         odom.pose.pose.position.y = corrected_y
-        odom.pose.pose.position.z = raw_z  
+        odom.pose.pose.position.z = raw_z
 
         odom.pose.pose.orientation.x = qx
         odom.pose.pose.orientation.y = qy
@@ -161,16 +189,26 @@ class OdomPublisher(Node):
 
         self.odom_pub_.publish(odom)
 
-
+        # ВАЖНО: TF теперь публикует corrected_x/corrected_y (было: raw),
+        # синхронно с corrected orientation. Раньше здесь был рассинхрон:
+        # transform.translation брался "сырым", а rotation - скорректированным.
+        
+        
         t = TransformStamped()
         t.header.stamp = now
         t.header.frame_id = self.odom_frame_
         t.child_frame_id = self.base_frame_
-        t.transform.translation.x = float(msg.position[0]) #corrected_x
-        t.transform.translation.y = float(msg.position[1]) #corrected_y
-        t.transform.translation.z = float(msg.position[2]) #raw_z
+        t.transform.translation.x = corrected_x
+        t.transform.translation.y = corrected_y
+        t.transform.translation.z = raw_z
         t.transform.rotation = odom.pose.pose.orientation
-        self.tf_broadcaster_.sendTransform(t)
+        self.tf_broadcaster_.sendTransform(t)       
+
+
+
+        # t.transform.translation.x = float(msg.position[0]) #corrected_x
+        # t.transform.translation.y = float(msg.position[1]) #corrected_y
+        # t.transform.translation.z = float(msg.position[2]) #raw_z
 
 
 def main(args=None):
@@ -181,6 +219,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        node._save_state()
         node.destroy_node()
         rclpy.shutdown()
 

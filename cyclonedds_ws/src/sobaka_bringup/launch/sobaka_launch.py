@@ -100,25 +100,28 @@ def generate_launch_description():
             'frame_id': 'base_link',
             'odom_frame_id': 'odom',
             'subscribe_depth': False,
-            'subscribe_rgb': False,
+            'subscribe_rgb': True,
+            'subscribe_imu': True,
             'subscribe_scan_cloud': True,
             'approx_sync': True,
             'wait_for_transform_duration': 1.2,
             'use_sim_time': False,
             'sync_queue_size': 15,
             'topic_queue_size': 15,
-            'map_always_update': True, 
+            'map_always_update': False, #True, 
             'publish_tf': True, #True,
 
-            'Grid/RangeMax': '15.0',  
+            'Grid/FromDepth': 'false',
+            'Grid/RangeMax': '8.0',  
             'Grid/MaxObstacleHeight': '2.8',
             'Grid/NormalsSegmentation': 'true', 
             'Grid/MaxGroundHeight': '-0.2',
             'Grid/MinGroundHeight': '-0.35', 
-            'Grid/NoiseFilteringRadius': '0.3',
+            'Grid/NoiseFilteringRadius': '0.5',
             'Grid/NoiseFilteringMinNeighbors': '8',
-            'Grid/ClusterRadius': '0.25',
+            'Grid/ClusterRadius': '0.3',
             'Grid/MinClusterSize': '10',
+            'Grid/CellSize': '0.05',               
             'Grid/RayTracing': 'true', 
 
 
@@ -126,29 +129,31 @@ def generate_launch_description():
             'Reg/Force3DoF': 'true',
 
 
-            'Icp/CorrespondenceRatio': '0.2',
+            'Icp/CorrespondenceRatio': '0.22',
             'Icp/Strategy': '1',
-            'Icp/MaxTranslation': '1.5',
+            'Icp/MaxTranslation': '1.0',
             'Icp/PointToPlane': 'true',
             'Icp/PointToPlaneK': '20',
             'Icp/VoxelSize': '0.05',
             'Icp/PointToPlaneMinComplexity': '0.02',
-            'Icp/MaxCorrespondenceDistance': '0.5',
+            'Icp/MaxCorrespondenceDistance': '0.8',
             'Icp/Iterations': '30',
 
-            'RGBD/OptimizeMaxError': '5.0',             
+            'RGBD/OptimizeMaxError': '3.5',             
             'RGBD/PlanarSLAM': 'true',    
             'RGBD/NeighborLinkRefinement': 'true',
             'RGBD/ProximityBySpace': 'true',
             'RGBD/ProximityMaxGraphDepth': '50',
-            'RGBD/ProximityPathMaxNeighbors': '10',
-            'RGBD/LocalRadius': '5.0',
+            'RGBD/ProximityPathMaxNeighbors': '8',
+            'RGBD/LocalRadius': '9.0',
             'RGBD/AngularUpdate': '0.05',
             'RGBD/LinearUpdate': '0.05',
 
             'Kp/MaxFeatures': '-1',         
 
-            'Vis/FeatureType': '0',
+            'Vis/FeatureType': '1',
+
+            'Kp/DetectorStrategy': '1',
 
             'Mem/IncrementalMemory': 'true',
             'Mem/ImagePreUpdate': 'false',
@@ -164,7 +169,9 @@ def generate_launch_description():
             ('odom', '/go2/odom_from_sport'),
             # ('odom', '/utlidar/robot_odom'),
             # ('odom', '/odometry/filtered'),
-            # ('imu', '/imu/data_clean'),
+            ('imu', '/imu/data_clean'),
+            ('rgb/image', '/sobaka_image'),
+            ('rgb/camera_info', '/sobaka_camera_info'),
         ]
     )
 
@@ -172,7 +179,7 @@ def generate_launch_description():
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(go2_states)),
-        # IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(joystick)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(estop)),
         # icp_odom,

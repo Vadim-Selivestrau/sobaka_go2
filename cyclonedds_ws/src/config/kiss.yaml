@@ -1,0 +1,32 @@
+kiss_icp_node:
+  ros__parameters:
+    ####    /!\ If you set these ROS-related parameters in the file, they will overwrite the corresponding launch arguments   ####
+
+    # base_frame: "base_link"        # раскомментируй и укажи, если хочешь одометрию в системе координат корпуса
+    # lidar_odom_frame: "odom_lidar"
+    # publish_odom_tf: True
+    # invert_odom_tf: True
+    # position_covariance: 0.1
+    # orientation_covariance: 0.1
+
+    ####    Core KISS-ICP parameters    ####
+
+    data:
+      deskew: True
+      max_range: 20.0
+      min_range: 0.5     # отсекаем self-hits от корпуса/ног рядом с лидаром
+
+    mapping:
+      voxel_size: 0.3     # мельче дефолта — больше точек для устойчивого матчинга в бедной геометрии
+      max_points_per_voxel: 20
+
+    adaptive_threshold:
+      initial_threshold: 2.0
+      min_motion_th: 0.1
+      # fixed_threshold: 0.3   # раскомментируй ЭТУ строку и закомментируй initial_threshold/min_motion_th,
+                                # если хочешь полностью отключить adaptive threshold и зафиксировать порог вручную
+
+    registration:
+      max_num_iterations: 500
+      convergence_criterion: 0.0001
+      max_num_threads: 0
