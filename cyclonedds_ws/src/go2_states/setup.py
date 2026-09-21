@@ -33,6 +33,9 @@ setup(
             'pose_pub = go2_states.double_integrate:main',
             'leg_odom = go2_states.leg_odom:main',
             'new_odom = go2_states.newodom:main',
+            'detect = go2_states.detect:main',
+            'lidar_camera = go2_states.lidar_camera:main',
+            'follow = go2_states.follow:main',
         ],
     },
 )

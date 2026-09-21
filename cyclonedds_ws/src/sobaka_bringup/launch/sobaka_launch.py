@@ -186,5 +186,5 @@ def generate_launch_description():
         odom_publisher_node,
         nav2,
         lidar_static_tf,
-        rtab_slam,
+        # rtab_slam,
     ])
