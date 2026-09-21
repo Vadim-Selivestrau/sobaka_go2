@@ -170,8 +170,8 @@ def generate_launch_description():
             # ('odom', '/utlidar/robot_odom'),
             # ('odom', '/odometry/filtered'),
             ('imu', '/imu/data_clean'),
-            ('rgb/image', '/sobaka_image'),
-            ('rgb/camera_info', '/sobaka_camera_info'),
+            # ('rgb/image', '/sobaka_image'),
+            # ('rgb/camera_info', '/sobaka_camera_info'),
         ]
     )
 
@@ -179,7 +179,7 @@ def generate_launch_description():
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(cmd_sport_layer)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(go2_states)),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
+        # IncludeLaunchDescription(PythonLaunchDescriptionSource(get_video)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(joystick)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(estop)),
         # icp_odom,

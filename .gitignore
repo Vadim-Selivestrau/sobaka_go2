@@ -5,3 +5,4 @@
 **/install/
 .cache
 cyclonedds_ws/3d_map.ply
+cyclonedds_ws/rosbag/
